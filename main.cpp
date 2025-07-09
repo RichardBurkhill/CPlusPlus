@@ -1,0 +1,269 @@
+/**
+ * @file C++14.cpp
+ * @brief Demonstrates various C++14 language constructs and features.
+ *
+ * This file showcases key C++14 additions including:
+ * - `make_unique` for creating unique pointers.
+ * - `constexpr` functions with more relaxed rules.
+ * - Generic lambdas.
+ * - Binary literals and digit separators.
+ * - Return type deduction for functions.
+ */
+
+#include <iostream>
+#include <memory>
+#include <vector>
+#include <string>
+#include <algorithm>
+
+// C++11: Strongly typed enumerations
+/**
+ * @brief Enumeration for different animal types.
+ * @details This is a C++11 feature, demonstrating strongly typed enumerations
+ *          to prevent implicit conversions and name clashes.
+ */
+enum class AnimalType { Dog, Cat };
+
+// Base class
+/**
+ * @brief Base class for animals.
+ * @details Demonstrates virtual functions and a pure virtual `speak` method,
+ *          making `Animal` an abstract class.
+ */
+class Animal {
+public:
+    std::string _name;
+    int _age;
+
+    // Default constructor
+    Animal() = default;
+
+    // Custom constructor
+    Animal(const std::string& name, int age) : _name(name), _age(age) {}
+
+    // Copy constructor
+    Animal(const Animal& rhs) = default;
+
+    // Copy assignment operator
+    Animal& operator=(const Animal& other) = default;
+
+    // Move constructor (optional but good)
+    Animal(Animal&& other) noexcept = default;
+
+    // Move assignment operator
+    Animal& operator=(Animal&& other) noexcept = default;
+
+    // Destructor
+    ~Animal() = default;
+
+    std::string getName() const {
+        return _name;
+    }
+
+    void speak() const {
+        std::cout << _name << " says hello, age " << _age << '\n';
+    }
+};
+
+// Dog class
+/**
+ * @brief Derived class representing a Dog.
+ * @details Uses `final` (C++11) to prevent further derivation.
+ */
+class Dog final : public Animal {
+public:
+    /**
+     * @brief Constructor for the Dog class.
+     * @param name The name of the dog.
+     */
+    Dog(const std::string& name, int age) : Animal(name, age) {}
+    Dog() = default;
+
+    Dog(const Dog& rhs) = default;
+    Dog& operator=(const Dog& rhs) = default;
+    Dog(Dog&& rhs) noexcept = default;
+    Dog& operator=(Dog&& rhs) noexcept = default;
+    ~Dog() = default;
+
+    /**
+     * @brief Makes the dog speak.
+     * @details Overrides the base class `speak` method.
+     */
+    void speak() const {
+        std::cout << _name << " says: Woof!" << std::endl;
+    }
+};
+
+// Cat class
+/**
+ * @brief Derived class representing a Cat.
+ * @details Uses `final` (C++11) to prevent further derivation.
+ */
+class Cat final : public Animal {
+public:
+    /**
+     * @brief Constructor for the Cat class.
+     * @param name The name of the cat.
+     */
+    Cat(const std::string& name, int age) : Animal(name, age) {}
+    Cat() = default;
+    Cat(const Cat& rhs) = default;
+    Cat& operator=(const Cat& rhs) = default;
+    Cat(Cat&& rhs) noexcept = default;
+    Cat& operator=(Cat&& rhs) noexcept = default;
+    ~Cat() = default;
+
+    /**
+     * @brief Makes the cat speak.
+     * @details Overrides the base class `speak` method.
+     */
+    void speak() const {
+        std::cout << _name << " says: Meow!" << std::endl;
+    }
+};
+
+// Zoo class manages animals using smart pointers
+/**
+ * @brief Manages a collection of animals using smart pointers.
+ * @details Demonstrates C++11 features like deleted functions for copy control
+ *          and default move constructors/assignment operators.
+ */
+class Zoo {
+public:
+    // C++11: deleted function to avoid copying
+    /**
+     * @brief Deleted copy constructor.
+     * @details Prevents copying of `Zoo` objects (C++11).
+     */
+    Zoo(const Zoo&) = delete;
+    
+    /**
+     * @brief Deleted copy assignment operator.
+     * @details Prevents copying of `Zoo` objects (C++11).
+     */
+    Zoo& operator=(const Zoo&) = delete;
+
+    /**
+     * @brief Default constructor for Zoo.
+     */
+    Zoo() = default;
+
+    // C++11: default move constructor
+    /**
+     * @brief Default move constructor.
+     * @details Enables efficient moving of `Zoo` objects (C++11).
+     */
+    Zoo(Zoo&&) = default;
+    
+    /**
+     * @brief Default move assignment operator.
+     * @details Enables efficient moving of `Zoo` objects (C++11).
+     */
+    Zoo& operator=(Zoo&&) = default;
+
+    /**
+     * @brief Adds an animal to the zoo.
+     * @param animal A unique pointer to the animal to add.
+     */
+    void addAnimal(std::unique_ptr<Animal> animal) {
+        animals_.emplace_back(std::move(animal));
+    }
+
+    /**
+     * @brief Makes all animals in the zoo speak.
+     * @details Uses a C++11 range-based for loop for iteration.
+     */
+    void makeAllSpeak() const {
+        // C++11: range-based for loop
+        for (const auto& animal : animals_) { ///< C++11: Range-based for loop for convenient iteration.
+            animal->speak();
+        }
+    }
+
+    /**
+     * @brief Lists the names of all animals in the zoo.
+     * @details Uses a C++11 lambda expression with `std::for_each`.
+     */
+    void listAnimalNames() const {
+        std::cout << "Animals in the zoo: ";
+        // C++11: lambda
+        std::for_each(animals_.begin(), animals_.end(),
+                      [](const std::unique_ptr<Animal>& a) { ///< C++11: Lambda expression for concise inline function objects.
+                          std::cout << a->getName() << " ";
+                      });
+        std::cout << std::endl;
+    }
+
+private:
+    std::vector<std::unique_ptr<Animal>> animals_;
+};
+
+// C++14: constexpr function
+/**
+ * @brief Doubles an integer value at compile time.
+ * @param age The integer value to double.
+ * @return The doubled value.
+ * @details This function demonstrates C++14's relaxed `constexpr` rules,
+ *          allowing more complex logic within `constexpr` functions.
+ */
+constexpr int doubleAge(int age) { ///< C++14: Relaxed constexpr function, allowing more complex logic.
+    return age * 2;
+}
+
+/**
+ * @brief Main function demonstrating C++14 features.
+ *
+ * This function initializes a `Zoo` object, adds animals using `make_unique`,
+ * and demonstrates a `constexpr` function.
+ */
+int main() {
+    Zoo zoo;
+
+    // C++14: make_unique
+    zoo.addAnimal(std::make_unique<Dog>("Rex", 5)); ///< C++14: std::make_unique for safe and efficient unique_ptr creation.
+    zoo.addAnimal(std::make_unique<Cat>("Whiskers", 2));
+
+    zoo.listAnimalNames();
+    zoo.makeAllSpeak();
+
+    constexpr int age = 4;
+    std::cout << "Double age of " << age << " is " << doubleAge(age) << std::endl;
+
+    std::vector<Animal> animals = {
+        {"Bella", 3},
+        {"Charlie", 7},
+        {"Max", 2},
+        {"Luna", 5}
+    };
+
+    std::cout << "All animals:\n";
+    std::for_each(animals.begin(), animals.end(), [](const Animal& a) {
+        a.speak();
+    });
+
+    std::cout << "\nAnimals older than 4:\n";
+    std::vector<Animal> older;
+    std::copy_if(animals.begin(), animals.end(), std::back_inserter(older), [](const Animal& a) {
+        return a._age > 4;
+    });
+
+    for (const auto& a : older) {
+        a.speak();
+    }
+
+    std::cout << "\nSorting by name:\n";
+    std::sort(animals.begin(), animals.end(), [](const Animal& a, const Animal& b) {
+        return a._name < b._name;
+    });
+
+    for (const auto& a : animals) {
+        a.speak();
+    }
+
+    std::cout << "\nSorting by age:\n";
+    std::sort(animals.begin(), animals.end(), [](const Animal& a, const Animal& b) {
+        return a._age < b._age;
+    }); 
+
+    return 0;
+}
