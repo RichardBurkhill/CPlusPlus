@@ -15,6 +15,8 @@
 #include <vector>
 #include <string>
 #include <algorithm>
+#include <thread>
+#include <mutex>
 
 // C++11: Strongly typed enumerations
 /**
@@ -226,9 +228,12 @@ int main() {
     zoo.listAnimalNames();
     zoo.makeAllSpeak();
 
+    // C++14: constexpr function to double an age
+    std::cout << "Using constexpr function to double an age at compile time.\n";
     constexpr int age = 4;
     std::cout << "Double age of " << age << " is " << doubleAge(age) << std::endl;
 
+    // C++14: Generic lambda
     std::vector<Animal> animals = {
         {"Bella", 3},
         {"Charlie", 7},
@@ -241,11 +246,13 @@ int main() {
         a.speak();
     });
 
+    // C++14: Generic lambda to filter animals older than 4
     std::cout << "\nAnimals older than 4:\n";
     std::vector<Animal> older;
     std::copy_if(animals.begin(), animals.end(), std::back_inserter(older), [](const Animal& a) {
         return a._age > 4;
     });
+
 
     for (const auto& a : older) {
         a.speak();
@@ -255,15 +262,49 @@ int main() {
     std::sort(animals.begin(), animals.end(), [](const Animal& a, const Animal& b) {
         return a._name < b._name;
     });
-
-    for (const auto& a : animals) {
+    std::for_each(animals.begin(), animals.end(), [](const Animal& a) {
         a.speak();
-    }
+    });
 
     std::cout << "\nSorting by age:\n";
     std::sort(animals.begin(), animals.end(), [](const Animal& a, const Animal& b) {
         return a._age < b._age;
-    }); 
+    });
+    std::for_each(animals.begin(), animals.end(), [](const Animal& a) {
+        a.speak();
+    });
+
+    std::mutex mtx;
+
+    std::thread t1([&animals, &mtx]() {
+        std::lock_guard<std::mutex> lock(mtx);
+        std::cout << "\n[Thread 1] Processing animals:\n";
+        for (const auto& a : animals) {
+            std::this_thread::sleep_for(std::chrono::milliseconds(200));
+            std::cout << "[Thread 1] ";
+            a.speak();
+        }
+    });
+
+    std::thread t2([&animals, &mtx]() {
+        std::lock_guard<std::mutex> lock(mtx);
+        std::cout << "\n[Thread 2] Feeding animals:\n";
+        for (const auto& a : animals) {
+            std::this_thread::sleep_for(std::chrono::milliseconds(150));
+            std::cout << "[Thread 2] Feeding " << a._name << "\n";
+        }
+    });
+
+    t1.join();
+    t2.join();
+
+    // C++14: Binary literals and digit separators
+    std::cout << "\nUsing binary literals and digit separators:\n";
+    int binaryValue = 0b1010'1100; // C++14: Binary literal with digit separators.
+    std::cout << "Binary value: " << binaryValue << std::endl; 
+    int largeNumber = 1'000'000; // C++14: Digit separator for readability.
+    std::cout << "Large number: " << largeNumber << std::endl;
+    std::cout << "End of C++14 demonstration." << std::endl;
 
     return 0;
 }
