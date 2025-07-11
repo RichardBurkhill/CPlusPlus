@@ -41,7 +41,7 @@ public:
     Animal() = default;
 
     // Custom constructor
-    Animal(const std::string& name, int age) : _name(name), _age(age) {}
+    Animal(const std::string& name, int age) : _name(std::move(name)), _age(age) {}
 
     // Copy constructor
     Animal(const Animal& rhs) = default;
@@ -212,6 +212,20 @@ constexpr int doubleAge(int age) { ///< C++14: Relaxed constexpr function, allow
     return age * 2;
 }
 
+void taskA() {
+    for (int i = 0; i < 5; ++i) {
+        std::cout << "Task A - " << i << std::endl;
+        std::this_thread::sleep_for(std::chrono::milliseconds(500));
+    }
+}
+
+void taskB() {
+    for (int i = 0; i < 5; ++i) {
+        std::cout << "Task B - " << i << std::endl;
+        std::this_thread::sleep_for(std::chrono::milliseconds(300));
+    }
+}
+
 /**
  * @brief Main function demonstrating C++14 features.
  *
@@ -297,6 +311,12 @@ int main() {
 
     t1.join();
     t2.join();
+
+    std::thread threadA(taskA);  // start taskA on a new thread
+    std::thread threadB(taskB);  // start taskB on another new thread
+
+    threadA.join(); // wait for threadA to finish
+    threadB.join(); // wait for threadB to finish
 
     // C++14: Binary literals and digit separators
     std::cout << "\nUsing binary literals and digit separators:\n";
