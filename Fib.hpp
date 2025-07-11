@@ -9,5 +9,6 @@ std::vector<unsigned long long> generateFibonacci(int n)
         std::tie(a, b) = std::make_pair(b, a + b);
         return next;
     });
+    std::sort(fib.begin(), fib.end());
     return fib;
 }

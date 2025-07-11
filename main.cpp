@@ -11,10 +11,10 @@
  */
 #include <thread>
 
-#include "Dog.h"
-#include "Cat.h"
-#include "Zoo.h"
-#include "fib.h"
+#include "Dog.hpp"
+#include "Cat.hpp"
+#include "Zoo.hpp"
+#include "Fib.hpp"
 
 void taskA() {
     for (int i = 0; i < 5; ++i) {
@@ -126,11 +126,11 @@ int main() {
     threadA.join(); // wait for threadA to finish
     threadB.join(); // wait for threadB to finish
 
-
-    std::sort(fib.begin(), fib.end());
     std::cout << "\nFibonacci sequence:\n";
     // C++14: Using a lambda to generate Fibonacci numbers
     std::cout << "First 100 Fibonacci numbers:\n";
+    auto fib = generateFibonacci(100);
+    std::cout << "Fibonacci sequence:\n";
     for (const auto& num : fib) {
         std::cout << num << "\n";
     }

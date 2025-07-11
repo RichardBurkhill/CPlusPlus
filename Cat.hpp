@@ -1,4 +1,4 @@
-#include "Animal.h"
+#include "Animal.hpp"
 
 // Cat class
 /**
