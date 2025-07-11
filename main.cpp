@@ -290,6 +290,8 @@ int main() {
 
     std::mutex mtx;
 
+    // C++14: Using threads to demonstrate concurrency
+    std::cout << "\nUsing threads to demonstrate concurrency:\n";
     std::thread t1([&animals, &mtx]() {
         std::lock_guard<std::mutex> lock(mtx);
         std::cout << "\n[Thread 1] Processing animals:\n";
@@ -312,11 +314,29 @@ int main() {
     t1.join();
     t2.join();
 
+    std::cout << std::endl;
+
     std::thread threadA(taskA);  // start taskA on a new thread
     std::thread threadB(taskB);  // start taskB on another new thread
 
     threadA.join(); // wait for threadA to finish
     threadB.join(); // wait for threadB to finish
+
+    std::vector<unsigned long long> fib(100);
+    unsigned long long a = 0, b = 1;
+    std::generate(fib.begin(), fib.end(), [&]() {
+        auto next = a;
+        std::tie(a, b) = std::make_pair(b, a + b);
+        return next;
+    });
+    std::sort(fib.begin(), fib.end());
+    std::cout << "\nFibonacci sequence:\n";
+    // C++14: Using a lambda to generate Fibonacci numbers
+    std::cout << "First 100 Fibonacci numbers:\n";
+    for (const auto& num : fib) {
+        std::cout << num << "\n";
+    }
+    std::cout << "End of Fibonacci sequence.\n";
 
     // C++14: Binary literals and digit separators
     std::cout << "\nUsing binary literals and digit separators:\n";
