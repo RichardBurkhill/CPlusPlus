@@ -35,3 +35,9 @@ target_link_libraries(Cpp14DemoTests
 
 # Enable CTest if desired
 add_test(NAME Cpp14DemoTests COMMAND Cpp14DemoTests)
+
+find_package(GTest REQUIRED)
+include_directories(${GTEST_INCLUDE_DIRS})
+add_executable(GeoTransformTests test_GeoTransform.cpp GeoTransform.cpp)
+target_link_libraries(GeoTransformTests GTest::GTest GTest::Main pthread)
+add_test(NAME GeoTransformTests COMMAND GeoTransformTests)
