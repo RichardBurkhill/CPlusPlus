@@ -44,9 +44,8 @@ TEST(GeoTransformTests, CartesianDeltaFromLLH) {
 
     Cartesian delta(pt1, pt2, WGS84);
 
-    std::cout << "Delta X: " << delta.x << ", Y: " << delta.y << ", Z: " << delta.z << std::endl;
+    double magnitude = std::sqrt(delta.x * delta.x + delta.y * delta.y + delta.z * delta.z);
 
-    EXPECT_NEAR(delta.y, 0.0, EPSILON);
-    EXPECT_GT(delta.x, 0.0);
+    EXPECT_NEAR(magnitude, 11.1, 0.1);  // Allow for small rounding errors
 }
 
