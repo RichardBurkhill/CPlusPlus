@@ -24,6 +24,7 @@ TEST(GeoTransformTests, HelmertTransformationToWGS84) {
     // Expect result to be close to known WGS84 for Greenwich
     EXPECT_NEAR(result.lat, 51.4780, 1e-4);
     EXPECT_NEAR(result.lon, -0.0014, 1e-4);
+    //Test failure, need to use surveyed points in both OSGB36 and WGS84
 }
 
 TEST(GeoTransformTests, DistanceBetweenTwoPoints) {
