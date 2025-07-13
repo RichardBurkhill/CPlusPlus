@@ -1,8 +1,8 @@
 /**
  * @file Comms.hpp
  * @brief Cross-platform communication class supporting WinSock and BSD sockets.
- * @details Provides basic TCP client functionality with framing strategies based on
- * carriage return or timeout.
+ * @details Provides basic TCP client functionality with multiple framing strategies:
+ * CRLF, Length Prefix, Timeout, or None.
  */
 
 #ifndef COMMS_HPP
@@ -36,8 +36,10 @@ enum class SocketBackend {
 
 /// @brief Message framing strategy
 enum class FramingStrategy {
-    CarriageReturn, ///< Message ends with '\r'
-    Timeout         ///< Message ends when no data for 30ms
+    CRLF,         ///< Message ends with "\r\n"
+    LengthPrefix, ///< Message begins with a 4-byte length field (network byte order)
+    Timeout,      ///< Message ends when no data received for 30ms
+    None          ///< Raw stream, caller is responsible for interpreting message boundaries
 };
 
 /// @brief Basic TCP client communications class
@@ -58,6 +60,10 @@ private:
     void initializeSocketAPI();
     void cleanupSocketAPI();
     void closeSocket();
+
+    std::string receiveWithTimeout();
+    std::string receiveUntilCRLF();
+    std::string receiveWithLengthPrefix();
 };
 
 #endif // COMMS_HPP
