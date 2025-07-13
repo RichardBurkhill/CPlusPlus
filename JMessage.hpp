@@ -25,6 +25,24 @@ inline uint32_t readBE32(const uint8_t* data) {
            uint32_t(data[3]);
 }
 
+// Read 16-bit little-endian word from buffer.
+// This operation is endian-safe as it reconstructs the value byte by byte
+// using bit shifts, which correctly forms the integer in the host's native endianness.
+inline uint16_t readLE16(const uint8_t* data) {
+    return (uint16_t(data[1]) << 8) | uint16_t(data[0]);
+}
+
+// Read 32-bit little-endian dword from buffer.
+// This operation is endian-safe as it reconstructs the value byte by byte
+// using bit shifts, which correctly forms the integer in the host's native endianness.
+inline uint32_t readLE32(const uint8_t* data) {
+    return (uint32_t(data[3]) << 24) |
+           (uint32_t(data[2]) << 16) |
+           (uint32_t(data[1]) << 8)  |
+           uint32_t(data[0]);
+}
+
+
 // Base class for J-series messages
 class JMessage {
 public:
