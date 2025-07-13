@@ -47,6 +47,38 @@ public:
     static std::unique_ptr<JMessage> createFromBuffer(const uint8_t* buffer, size_t size);
 };
 
+// J1 Network Time Reference Message
+class J1Message : public JMessage {
+public:
+    uint32_t time_of_day_seconds; // 32-bit seconds since midnight UTC
+    uint8_t time_quality;          // 4 bits, time quality indicator
+    uint8_t network_id;            // 8 bits, network ID
+    uint8_t reserved;              // 4 bits reserved or unused
+
+    void parseBody(const uint8_t* buffer, size_t size) override {
+        if (size < 8) throw std::runtime_error("Buffer too small for J1 body");
+
+        time_of_day_seconds = readBE32(buffer);  // bytes 0..3
+
+        // Byte 4 bits: high nibble = time_quality, low nibble = reserved
+        time_quality = buffer[4] >> 4;
+        reserved = buffer[4] & 0x0F;
+
+        network_id = buffer[5];  // byte 5
+
+        // bytes 6 and 7 could be padding or additional fields, ignore for now
+    }
+
+    std::string toString() const override {
+        std::ostringstream oss;
+        oss << "J1Message: TimeOfDay=" << time_of_day_seconds
+            << " sec, TimeQuality=" << unsigned(time_quality)
+            << ", NetworkID=" << unsigned(network_id)
+            << ", Reserved=0x" << std::hex << unsigned(reserved);
+        return oss.str();
+    }
+};
+
 // J3 Identity Message
 class J3Message : public JMessage {
 public:
@@ -70,6 +102,35 @@ public:
             << ", Emitter Category=" << unsigned(emitter_category)
             << ", System Status=0x" << std::hex << int(system_status)
             << ", Exercise ID=" << std::dec << unsigned(exercise_id);
+        return oss.str();
+    }
+};
+
+// J4 Command Message
+class J4Message : public JMessage {
+public:
+    uint8_t command_code;          // 8 bits
+    uint16_t parameter;            // 16 bits
+    uint32_t execution_time_sec;   // 32 bits
+    bool urgent_flag;              // 1 bit in command_code or separate bitfield
+
+    void parseBody(const uint8_t* buffer, size_t size) override {
+        if (size < 7) throw std::runtime_error("Buffer too small for J4 body");
+
+        command_code = buffer[0];
+        parameter = readBE16(buffer + 1);
+        execution_time_sec = readBE32(buffer + 3);
+
+        // Let's say urgent_flag is bit 7 (MSB) of command_code
+        urgent_flag = (command_code & 0x80) != 0;
+    }
+
+    std::string toString() const override {
+        std::ostringstream oss;
+        oss << "J4Message: CommandCode=0x" << std::hex << unsigned(command_code)
+            << ", Parameter=" << std::dec << parameter
+            << ", ExecutionTime=" << execution_time_sec << " sec"
+            << ", UrgentFlag=" << (urgent_flag ? "Yes" : "No");
         return oss.str();
     }
 };
@@ -115,7 +176,9 @@ inline std::unique_ptr<JMessage> JMessage::createFromBuffer(const uint8_t* buffe
 
     std::unique_ptr<JMessage> msg;
     switch (msgType) {
+        case 1:  msg = std::make_unique<J1Message>(); break;
         case 3:  msg = std::make_unique<J3Message>(); break;
+        case 4:  msg = std::make_unique<J4Message>(); break;
         case 12: msg = std::make_unique<J12Message>(); break;
         // Add other message types here as needed
         default:
