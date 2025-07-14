@@ -1,61 +1,38 @@
-#include "Serial_Comms.hpp"
+#include "NetworkComms.hpp"
 #include "NMEAReader.hpp"
 #include "NMEAParser.hpp"
 #include <iostream>
 #include <thread>
 #include <chrono>
+#include <optional> // For std::optional
 
-int main()
-{
-    std::cout << "Starting NMEA Reader Example..." << std::endl;
+int main() {
+    std::cout << "Starting NMEA Reader Example (Network Comms)..." << std::endl;
 
-    // 1. Initialize Serial_Comms
-    Serial_Comms serialPort;
-    std::string portName;
+    // 1. Initialize NetworkComms
+    NetworkComms networkComms;
+    const std::string AIS_HUB_HOST = "data.aishub.net";
+    const std::string AIS_HUB_PORT = "80"; // Standard HTTP port, often used for raw TCP streams
 
-#ifdef _WIN32
-    portName = "COM1"; // Change to your Windows COM port
-#else
-    portName = "/dev/ttyUSB0"; // Change to your Linux/macOS serial port
-#endif
-
-    if (!serialPort.open(portName))
-    {
-        std::cerr << "Error: Could not open serial port " << portName << std::endl;
+    if (!networkComms.connect(AIS_HUB_HOST, AIS_HUB_PORT, NetworkComms::Protocol::TCP)) {
+        std::cerr << "Error: Could not connect to " << AIS_HUB_HOST << ":" << AIS_HUB_PORT << std::endl;
         return 1;
     }
 
-    // Configure serial port (e.g., 4800 baud, 8N1, no flow control for NMEA)
-    if (!serialPort.configure(
-            Serial_Comms::BaudRate::BR_4800, // NMEA standard baud rate
-            Serial_Comms::DataBits::DB_8,
-            Serial_Comms::Parity::None,
-            Serial_Comms::StopBits::SB_1,
-            Serial_Comms::FlowControl::None))
-    {
-        std::cerr << "Error: Could not configure serial port." << std::endl;
-        serialPort.close();
-        return 1;
-    }
+    std::cout << "Connected to " << AIS_HUB_HOST << ":" << AIS_HUB_PORT << std::endl;
 
-    std::cout << "Serial port " << portName << " opened and configured." << std::endl;
-
-    // 2. Initialize NMEAReader with the Serial_Comms instance
-    NMEAReader nmeaReader(serialPort, 500); // 500ms timeout for each read operation
+    // 2. Initialize NMEAReader with the NetworkComms instance (which is an IComms)
+    NMEAReader nmeaReader(networkComms, 500); // 500ms timeout for each read operation
 
     std::cout << "NMEA Reader initialized. Waiting for sentences..." << std::endl;
 
     // 3. Main loop to read and parse NMEA sentences
-    while (true)
-    {
+    while (true) {
         std::optional<std::shared_ptr<NMEAMessage>> message = nmeaReader.readAndParseSentence();
 
-        if (message.has_value())
-        {
+        if (message.has_value()) {
             std::cout << "Parsed NMEA Message: " << message.value()->toString() << std::endl;
-        }
-        else
-        {
+        } else {
             // No complete sentence found within the timeout, or no data available
             // std::cout << "No NMEA sentence available (timeout or no data)." << std::endl;
             std::this_thread::sleep_for(std::chrono::milliseconds(100)); // Prevent busy-waiting
@@ -63,8 +40,8 @@ int main()
     }
 
     // This part will not be reached in the infinite loop, but good practice for cleanup
-    serialPort.close();
-    std::cout << "Serial port closed. Exiting." << std::endl;
+    networkComms.close();
+    std::cout << "Network connection closed. Exiting." << std::endl;
 
     return 0;
 }

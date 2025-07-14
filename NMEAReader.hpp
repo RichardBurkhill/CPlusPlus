@@ -1,36 +1,35 @@
 #ifndef NMEA_READER_HPP
 #define NMEA_READER_HPP
 
-#include "Serial_Comms.hpp"
+#include "IComms.hpp" // Include the new IComms interface
 #include "NMEAParser.hpp" // Assuming NMEAParser.hpp is available
 #include <string>
 #include <optional>
-#include <memory>   // For std::shared_ptr
+#include <memory> // For std::shared_ptr
 #include <iostream> // For debugging output
 
 /**
- * @brief A class to read and parse NMEA sentences from a Serial_Comms stream.
+ * @brief A class to read and parse NMEA sentences from an IComms stream.
  *
  * This class handles buffering and extracting complete NMEA sentences from a
- * raw byte stream provided by Serial_Comms, and then uses NMEAParser to
+ * raw byte stream provided by any class implementing IComms, and then uses NMEAParser to
  * validate and parse them.
  */
-class NMEAReader
-{
+class NMEAReader {
 public:
     /**
      * @brief Constructs an NMEAReader.
-     * @param serialComms A reference to an initialized Serial_Comms object.
+     * @param comms A reference to an initialized IComms object (e.g., Serial_Comms or NetworkComms).
      * @param readTimeoutMs The timeout in milliseconds for each individual read operation
-     *                      from the serial port.
+     *                      from the communication medium.
      */
-    NMEAReader(Serial_Comms &serialComms, unsigned int readTimeoutMs = 100);
+    NMEAReader(IComms& comms, unsigned int readTimeoutMs = 100);
 
     /**
-     * @brief Reads data from the serial port, buffers it, and attempts to parse
+     * @brief Reads data from the communication medium, buffers it, and attempts to parse
      *        a complete and valid NMEA sentence.
      *
-     * This method will continue reading from the serial port until a complete
+     * This method will continue reading from the communication medium until a complete
      * NMEA sentence is found and successfully parsed, or until a read timeout
      * occurs without any new data or a complete sentence in the buffer.
      *
@@ -40,7 +39,7 @@ public:
     std::optional<std::shared_ptr<NMEAMessage>> readAndParseSentence();
 
 private:
-    Serial_Comms &_serialComms;
+    IComms& _comms; // Changed from Serial_Comms& to IComms&
     unsigned int _readTimeoutMs;
     std::string _receiveBuffer; // Buffer to hold partial sentences and multiple sentences
 

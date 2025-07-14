@@ -1,8 +1,9 @@
 #include "NMEAReader.hpp"
 #include <algorithm> // For std::find
 
-NMEAReader::NMEAReader(Serial_Comms &serialComms, unsigned int readTimeoutMs)
-    : _serialComms(serialComms),
+// Changed constructor parameter from Serial_Comms& to IComms&
+NMEAReader::NMEAReader(IComms &comms, unsigned int readTimeoutMs)
+    : _comms(comms), // Changed _serialComms to _comms
       _readTimeoutMs(readTimeoutMs)
 {
 }
@@ -29,8 +30,9 @@ std::optional<std::shared_ptr<NMEAMessage>> NMEAReader::readAndParseSentence()
             }
         }
 
-        // 2. If no complete sentence or parsing failed, read more data from serial port
-        std::string newData = _serialComms.readBytes(128, _readTimeoutMs); // Read up to 128 bytes
+        // 2. If no complete sentence or parsing failed, read more data from communication medium
+        // Changed _serialComms.readBytes to _comms.readBytes
+        std::string newData = _comms.readBytes(128, _readTimeoutMs); // Read up to 128 bytes
 
         if (newData.empty())
         {
