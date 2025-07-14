@@ -1,110 +1,66 @@
-/**
- * @file NMEAParser.hpp
- * @brief NMEA 0183 Parser for multiple GPS sentence types.
- * @details Supports $GPRMC, $GPGGA, $GPGLL, $GPVTG, $GPGSA, and $GPGSV with automatic detection.
- */
-
 #ifndef NMEA_PARSER_HPP
 #define NMEA_PARSER_HPP
 
 #include <string>
+#include <stdexcept>
 #include <memory>
-#include <vector>
-#include <optional>
 
-/// Base class for all NMEA messages
-class NMEAMessage {
+// Forward declaration for NMEAMessage base class
+class NMEAMessage
+{
 public:
+    enum class MessageType
+    {
+        UNKNOWN,
+        GGA, // Global Positioning System Fix Data
+        RMC, // Recommended Minimum Specific GNSS Data
+        // Add more NMEA message types as needed
+    };
+
     virtual ~NMEAMessage() = default;
-    virtual std::string type() const = 0;
+    virtual MessageType getType() const = 0;
+    virtual std::string toString() const = 0;
+    std::string rawSentence;
 };
 
-/// RMC - Recommended Minimum Navigation Information
-struct GPRMC : public NMEAMessage {
-    std::string utcTime;
-    char status;
-    double latitude;
-    char latDir;
-    double longitude;
-    char lonDir;
-    double speed;
-    double course;
-    std::string date;
-
-    std::string type() const override { return "GPRMC"; }
-};
-
-/// GGA - Global Positioning System Fix Data
-struct GPGGA : public NMEAMessage {
-    std::string utcTime;
-    double latitude;
-    char latDir;
-    double longitude;
-    char lonDir;
-    int fixQuality;
-    int numSatellites;
-    double hdop;
-    double altitude;
-    char altitudeUnits;
-
-    std::string type() const override { return "GPGGA"; }
-};
-
-/// GLL - Geographic Position - Latitude/Longitude
-struct GPGLL : public NMEAMessage {
-    double latitude;
-    char latDir;
-    double longitude;
-    char lonDir;
-    std::string utcTime;
-    char status;
-
-    std::string type() const override { return "GPGLL"; }
-};
-
-/// VTG - Course Over Ground and Ground Speed
-struct GPVTG : public NMEAMessage {
-    double courseTrue;
-    char courseTrueUnit;
-    double speedKnots;
-    char speedKnotsUnit;
-    double speedKmh;
-    char speedKmhUnit;
-
-    std::string type() const override { return "GPVTG"; }
-};
-
-/// GSA - GPS DOP and Active Satellites
-struct GPGSA : public NMEAMessage {
-    char mode;
-    int fixType;
-    std::vector<int> satellitesUsed;
-    double pdop;
-    double hdop;
-    double vdop;
-
-    std::string type() const override { return "GPGSA"; }
-};
-
-/// GSV - Satellites in View
-struct GPGSV : public NMEAMessage {
-    int totalMessages;
-    int messageNumber;
-    int satellitesInView;
-
-    std::string type() const override { return "GPGSV"; }
-};
-
-/// Parser class for NMEA sentences
-class NMEAParser {
+// Example derived NMEA message type
+class GGAMessage : public NMEAMessage
+{
 public:
-    static std::optional<std::shared_ptr<NMEAMessage>> parseSentence(const std::string& sentence);
+    GGAMessage(const std::string &raw) { rawSentence = raw; }
+    MessageType getType() const override { return MessageType::GGA; }
+    std::string toString() const override { return "GGA Message: " + rawSentence; }
+    // Add parsed GGA fields here
+};
+
+// Example derived NMEA message type
+class RMCMessage : public NMEAMessage
+{
+public:
+    RMCMessage(const std::string &raw) { rawSentence = raw; }
+    MessageType getType() const override { return MessageType::RMC; }
+    std::string toString() const override { return "RMC Message: " + rawSentence; }
+    // Add parsed RMC fields here
+};
+
+/**
+ * @brief A placeholder NMEA parser class.
+ * In a real application, this would contain full parsing logic and checksum validation.
+ */
+class NMEAParser
+{
+public:
+    /**
+     * @brief Parses a complete NMEA sentence.
+     * @param sentence The NMEA sentence string (e.g., "$GPGGA,...").
+     * @return A shared pointer to an NMEAMessage object.
+     * @throws std::runtime_error if the sentence is invalid or parsing fails.
+     */
+    static std::shared_ptr<NMEAMessage> parse(const std::string &sentence);
 
 private:
-    static bool validateChecksum(const std::string& sentence);
-    static std::vector<std::string> tokenize(const std::string& sentence);
-    static double parseLatitude(const std::string& value, char direction);
-    static double parseLongitude(const std::string& value, char direction);
+    // Helper to validate checksum (simplified for placeholder)
+    static bool validateChecksum(const std::string &sentence);
 };
 
 #endif // NMEA_PARSER_HPP
