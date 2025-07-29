@@ -1,0 +1,6 @@
+.vscode/
+OpenGLApp
+gl.o
+main.dSYM
+nmea_network_app
+serial_app
