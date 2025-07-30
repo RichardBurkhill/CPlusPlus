@@ -39,13 +39,16 @@ int main() {
         return -1;
     }
 
-    // Request OpenGL version 4.1 Core profile (modern OpenGL)
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 1);
+    // Request OpenGL version 3.3 Core profile
+    // Core profile means we want to use modern OpenGL without deprecated features.
+    // ------------------------------
+    glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
     // Create a windowed mode window and its OpenGL context
-    GLFWwindow* window = glfwCreateWindow(800, 600, "OpenGL Triangle", nullptr, nullptr);
+    GLFWwindow* window = glfwCreateWindow(800, 600, "OpenGL Rectangle", nullptr, nullptr);
     if (!window) {
         std::cerr << "Failed to create GLFW window\n";
         glfwTerminate();
@@ -63,13 +66,15 @@ int main() {
         return -1;
     }
 
-    // ------------------------------
-    // Define the vertex data for a triangle
-    // ------------------------------
     float vertices[] = {
-         0.0f,  0.5f, 0.0f,  // Vertex 1: Top
-        -0.5f, -0.5f, 0.0f,  // Vertex 2: Bottom Left
-         0.5f, -0.5f, 0.0f   // Vertex 3: Bottom Right
+        0.5f,  0.5f, 0.0f,  // top right
+        0.5f, -0.5f, 0.0f,  // bottom right
+        -0.5f, -0.5f, 0.0f,  // bottom left
+        -0.5f,  0.5f, 0.0f   // top left 
+    };
+    unsigned int indices[] = {  // note that we start from 0!
+        0, 1, 3,   // first triangle
+        1, 2, 3    // second triangle
     };
 
     // ------------------------------
@@ -81,10 +86,21 @@ int main() {
     glGenVertexArrays(1, &VAO);  // generate a VAO
     glGenBuffers(1, &VBO);       // generate a VBO
 
-    glBindVertexArray(VAO);      // bind the VAO (start configuring it)
+    unsigned int EBO;
+    glGenBuffers(1, &EBO);
 
-    glBindBuffer(GL_ARRAY_BUFFER, VBO);  // bind the VBO as the current array buffer
-    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW); // upload vertex data
+    // ..:: Initialization code :: ..
+    // 1. bind Vertex Array Object
+    glBindVertexArray(VAO);
+    // 2. copy our vertices array in a vertex buffer for OpenGL to use
+    glBindBuffer(GL_ARRAY_BUFFER, VBO);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+    // 3. copy our index array in a element buffer for OpenGL to use
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
+    // 4. then set the vertex attributes pointers
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+    glEnableVertexAttribArray(0);
 
     // ------------------------------
     // Tell OpenGL how to interpret the vertex data
@@ -135,7 +151,8 @@ int main() {
 
         glUseProgram(shaderProgram);  // activate the shader program
         glBindVertexArray(VAO);       // bind the VAO
-        glDrawArrays(GL_TRIANGLES, 0, 3); // draw 3 vertices as one triangle
+        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+        glBindVertexArray(0);
 
         // Swap front and back buffers
         glfwSwapBuffers(window);
