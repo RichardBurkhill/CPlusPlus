@@ -101,6 +101,7 @@ int main() {
     // 4. then set the vertex attributes pointers
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
     glEnableVertexAttribArray(0);
+    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
     // ------------------------------
     // Tell OpenGL how to interpret the vertex data
